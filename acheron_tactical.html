@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acheron Tactical | ACHTAC Command</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'space-dark': '#05070a',
+                        'space-panel': '#0c111a',
+                        'tac-cyan': '#00e5ff',
+                        'tac-cyan-dim': 'rgba(0, 229, 255, 0.2)',
+                        'tac-amber': '#ffab00',
+                        'tac-crimson': '#ff2a2a',
+                    },
+                    fontFamily: {
+                        'header': ['Rajdhani', 'sans-serif'],
+                        'mono': ['Share Tech Mono', 'monospace'],
+                    },
+                    backgroundImage: {
+                        'hex-pattern': "url('data:image/svg+xml,%3Csvg width=\\'60\\' height=\\'60\\' viewBox=\\'0 0 60 60\\' xmlns=\\'http://www.w3.org/2000/svg\\'%3E%3Cg fill=\\'none\\' fill-rule=\\'evenodd\\'%3E%3Cg fill=\\'%2300e5ff\\' fill-opacity=\\'0.05\\'%3E%3Cpath d=\\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')",
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Space & Tactical CSS */
+        body {
+            background-color: #05070a;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        /* Scanline Overlay */
+        .scanlines {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0, 0, 0, 0.1) 50%,
+                rgba(0, 0, 0, 0.1)
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 50;
+            opacity: 0.6;
+        }
+
+        /* Neon Glows */
+        .glow-cyan {
+            text-shadow: 0 0 8px rgba(0, 229, 255, 0.8);
+        }
+        .glow-crimson {
+            text-shadow: 0 0 10px rgba(255, 42, 42, 0.8);
+        }
+        .box-glow-cyan {
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.3), inset 0 0 10px rgba(0, 229, 255, 0.1);
+        }
+
+        /* Glassmorphism Panel */
+        .glass-panel {
+            background: rgba(12, 17, 26, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 229, 255, 0.15);
+            border-top: 2px solid rgba(0, 229, 255, 0.5);
+        }
+
+        /* Tactical Button */
+        .btn-tactical {
+            position: relative;
+            background: transparent;
+            color: #00e5ff;
+            border: 1px solid rgba(0, 229, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            z-index: 1;
+        }
+        .btn-tactical::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: rgba(0, 229, 255, 0.2);
+            transition: all 0.3s ease;
+            z-index: -1;
+            transform: skewX(-15deg);
+        }
+        .btn-tactical:hover::before {
+            left: 0;
+        }
+        .btn-tactical:hover {
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.5);
+            border-color: #00e5ff;
+            text-shadow: 0 0 5px #00e5ff;
+        }
+        
+        .btn-alert {
+            color: #ffab00;
+            border-color: rgba(255, 171, 0, 0.5);
+        }
+        .btn-alert::before {
+            background: rgba(255, 171, 0, 0.2);
+        }
+        .btn-alert:hover {
+            box-shadow: 0 0 15px rgba(255, 171, 0, 0.5);
+            border-color: #ffab00;
+            text-shadow: 0 0 5px #ffab00;
+        }
+
+        /* HUD Brackets */
+        .hud-bracket {
+            position: relative;
+        }
+        .hud-bracket::before, .hud-bracket::after {
+            content: '';
+            position: absolute;
+            width: 10px; height: 10px;
+            border: 2px solid #00e5ff;
+            transition: all 0.3s ease;
+        }
+        .hud-bracket::before {
+            top: -4px; left: -4px;
+            border-right: none; border-bottom: none;
+        }
+        .hud-bracket::after {
+            bottom: -4px; right: -4px;
+            border-left: none; border-top: none;
+        }
+
+        /* Animations */
+        @keyframes pulse-opacity {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .animate-hud-pulse {
+            animation: pulse-opacity 3s infinite;
+        }
+
+        /* Background Stars */
+        #starfield {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: -1;
+            background: #05070a;
+        }
+    </style>
+</head>
+<body class="font-mono text-gray-300 antialiased selection:bg-tac-cyan selection:text-space-dark">
+
+    <!-- Global Overlays -->
+    <div class="scanlines"></div>
+    <canvas id="starfield"></canvas>
+    <div class="fixed inset-0 bg-hex-pattern opacity-30 z-[-1] pointer-events-none"></div>
+
+    <!-- Live Telemetry Data (Background) -->
+    <div class="fixed top-24 left-4 text-xs text-tac-cyan opacity-40 pointer-events-none z-0 hidden md:block" id="telemetry-left">
+        SYS.INIT... OK<br>
+        UPLINK: <span id="tel-uplink">ESTABLISHED</span><br>
+        LAT: <span id="tel-lat">89.332</span><br>
+        LONG: <span id="tel-long">44.112</span><br>
+        SYNC: <span id="tel-sync">99.9%</span>
+    </div>
+    <div class="fixed bottom-4 right-4 text-xs text-tac-cyan opacity-40 pointer-events-none z-0 text-right hidden md:block" id="telemetry-right">
+        FLEET_COMM: ACTIVE<br>
+        SEC_LEVEL: <span class="text-tac-amber">ELEVATED</span><br>
+        PING: <span id="tel-ping">12</span>ms
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-40 glass-panel border-b-0 border-t-0 border-b border-tac-cyan/30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center gap-3">
+                    <svg class="h-8 w-8 text-tac-cyan animate-hud-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                    </svg>
+                    <span class="font-header font-bold text-2xl tracking-widest text-white glow-cyan uppercase">AchTac</span>
+                </div>
+                <!-- Desktop Menu -->
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-8 font-header text-lg font-medium tracking-wide">
+                        <a href="#home" class="text-tac-cyan border-b-2 border-tac-cyan pb-1 transition-colors">Home</a>
+                        <a href="#about" class="text-gray-400 hover:text-tac-cyan hover:border-b-2 border-tac-cyan/50 pb-1 transition-all">About Us</a>
+                        <a href="#fleet" class="text-gray-400 hover:text-tac-cyan hover:border-b-2 border-tac-cyan/50 pb-1 transition-all">Fleet</a>
+                        <a href="#operations" class="text-gray-400 hover:text-tac-cyan hover:border-b-2 border-tac-cyan/50 pb-1 transition-all">Operations</a>
+                        <a href="#comm-link" class="text-gray-400 hover:text-tac-cyan hover:border-b-2 border-tac-cyan/50 pb-1 transition-all">Comm-Link</a>
+                        <a href="#enlist" class="bg-tac-cyan/10 text-tac-cyan border border-tac-cyan/50 px-4 py-1 hover:bg-tac-cyan/20 hover:box-glow-cyan transition-all uppercase text-sm flex items-center gap-2">
+                            <span class="w-2 h-2 bg-tac-cyan rounded-full animate-pulse"></span> Enlist
+                        </a>
+                    </div>
+                </div>
+                <!-- Mobile menu button -->
+                <div class="-mr-2 flex md:hidden">
+                    <button type="button" onclick="toggleMobileMenu()" class="text-tac-cyan hover:text-white p-2">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-space-panel/95 border-b border-tac-cyan/30">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 font-header text-lg tracking-wide uppercase">
+                <a href="#home" class="text-tac-cyan block px-3 py-2">Home</a>
+                <a href="#about" class="text-gray-400 hover:text-tac-cyan block px-3 py-2">About Us</a>
+                <a href="#fleet" class="text-gray-400 hover:text-tac-cyan block px-3 py-2">Fleet</a>
+                <a href="#operations" class="text-gray-400 hover:text-tac-cyan block px-3 py-2">Operations</a>
+                <a href="#comm-link" class="text-gray-400 hover:text-tac-cyan block px-3 py-2">Comm-Link</a>
+                <a href="#enlist" class="text-tac-amber block px-3 py-2">Enlist Now</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 flex items-center min-h-screen">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
+            <div class="text-center md:text-left md:w-2/3">
+                <div class="inline-flex items-center gap-2 px-3 py-1 mb-6 border border-tac-cyan/30 bg-tac-cyan/5 text-tac-cyan text-sm font-mono tracking-widest">
+                    <span class="inline-block w-2 h-2 bg-tac-cyan rounded-full animate-pulse"></span>
+                    STATUS: COMBAT READY
+                </div>
+                <h1 class="font-header text-5xl md:text-7xl font-bold text-white uppercase tracking-tighter mb-4">
+                    Acheron <span class="text-transparent bg-clip-text bg-gradient-to-r from-tac-cyan to-blue-600 glow-cyan">Tactical</span>
+                </h1>
+                <p class="font-mono text-lg md:text-xl text-gray-400 mb-8 max-w-2xl leading-relaxed">
+                    Precision. Discipline. Firepower. We are a premier military organization operating in the Stanton system and beyond. Securing assets, dominating aerospace, and neutralizing threats since 2948.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                    <a href="#enlist" class="btn-tactical px-8 py-4 text-center font-header font-bold text-lg flex items-center justify-center gap-2">
+                        Submit Application
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </a>
+                    <a href="#about" class="px-8 py-4 text-center font-header font-bold text-lg text-gray-300 border border-gray-600 hover:border-gray-400 hover:text-white transition-colors bg-black/50">
+                        Access Databanks
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Decorative UI Element right side -->
+        <div class="hidden md:flex absolute right-10 top-1/2 -translate-y-1/2 flex-col gap-4 opacity-50">
+            <div class="w-32 h-32 border-2 border-tac-cyan rounded-full flex items-center justify-center relative animate-[spin_20s_linear_infinite]">
+                <div class="w-24 h-24 border border-dashed border-tac-cyan rounded-full"></div>
+                <div class="absolute top-0 left-1/2 w-2 h-2 bg-tac-cyan -translate-x-1/2 -translate-y-1/2"></div>
+            </div>
+            <div class="font-mono text-xs text-tac-cyan text-right">
+                OBJ_RADAR: ACTIVE<br>
+                SCAN_RANGE: MAX<br>
+                TRG_LOCK: FALSE
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-20 relative border-t border-tac-cyan/20 bg-space-dark/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col lg:flex-row gap-12 items-center">
+                <div class="lg:w-1/2 space-y-6">
+                    <div class="flex items-center gap-4 mb-2">
+                        <div class="h-px bg-tac-cyan w-12"></div>
+                        <h2 class="font-header text-3xl md:text-4xl font-bold text-white tracking-widest uppercase glow-cyan">Organization Directive</h2>
+                    </div>
+                    <p class="text-gray-400 text-lg leading-relaxed">
+                        Acheron Tactical (AchTac) was forged in the fires of frontier conflict. We operate on a strict military hierarchy tailored for fluid combat scenarios. Our doctrine emphasizes overwhelming force applied with surgical precision.
+                    </p>
+                    <ul class="space-y-4 font-mono text-sm text-gray-300">
+                        <li class="flex items-start gap-3 p-3 glass-panel border-l-4 border-l-tac-cyan">
+                            <svg class="w-5 h-5 text-tac-cyan shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <div>
+                                <strong class="text-white block mb-1 uppercase">Aerospace Superiority</strong>
+                                Dominating the skies and vacuum with elite pilot squadrons.
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-3 p-3 glass-panel border-l-4 border-l-tac-amber">
+                            <svg class="w-5 h-5 text-tac-amber shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                            <div>
+                                <strong class="text-white block mb-1 uppercase">Ground Assault & Security</strong>
+                                Highly trained marines capable of boarding actions and facility pacification.
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-3 p-3 glass-panel border-l-4 border-l-tac-crimson">
+                            <svg class="w-5 h-5 text-tac-crimson shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            <div>
+                                <strong class="text-white block mb-1 uppercase">Logistical Backbone</strong>
+                                Sustained operations require relentless supply chains and capital ship support.
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Tactical Image/Graphic -->
+                <div class="lg:w-1/2 w-full hud-bracket p-2">
+                    <div class="relative w-full aspect-video bg-space-panel overflow-hidden border border-tac-cyan/20 group">
+                        <!-- Simulated Image Placeholder / Wireframe -->
+                        <div class="absolute inset-0 bg-[url('https://placehold.co/800x450/0c111a/00e5ff?text=DECRYPTING_VISUAL_DATA...')] bg-cover bg-center opacity-50 mix-blend-screen group-hover:scale-105 transition-transform duration-700"></div>
+                        
+                        <!-- Overlay Grids -->
+                        <div class="absolute inset-0 bg-[linear-gradient(rgba(0,229,255,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(0,229,255,0.1)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none"></div>
+                        
+                        <!-- UI Overlays inside image -->
+                        <div class="absolute top-4 left-4 font-mono text-xs text-tac-cyan bg-black/60 px-2 py-1 border border-tac-cyan/50">CAM_04 [ONLINE]</div>
+                        <div class="absolute bottom-4 right-4 font-mono text-xs text-tac-cyan bg-black/60 px-2 py-1 flex items-center gap-2">
+                            <div class="w-2 h-2 bg-tac-crimson rounded-full animate-pulse"></div> REC
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Fleet Status Section -->
+    <section id="fleet" class="py-20 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="font-header text-3xl md:text-4xl font-bold text-white tracking-widest uppercase mb-2">Fleet Manifest</h2>
+                <p class="font-mono text-gray-400">Current active assets and combat readiness.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Fleet Card 1 -->
+                <div class="glass-panel p-6 group hover:border-tac-cyan transition-colors">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="font-header text-2xl font-bold text-white uppercase group-hover:text-tac-cyan transition-colors">Fighter Wing</h3>
+                        <span class="font-mono text-tac-cyan bg-tac-cyan/10 px-2 py-1 text-xs border border-tac-cyan/30">98% READY</span>
+                    </div>
+                    <div class="h-2 w-full bg-gray-800 mb-6 rounded overflow-hidden">
+                        <div class="h-full bg-tac-cyan w-[98%] shadow-[0_0_10px_#00e5ff]"></div>
+                    </div>
+                    <ul class="font-mono text-sm space-y-2 text-gray-400">
+                        <li class="flex justify-between border-b border-gray-800 pb-1"><span>Gladius Light Fighters</span> <span class="text-white">x24</span></li>
+                        <li class="flex justify-between border-b border-gray-800 pb-1"><span>Arrow Interceptors</span> <span class="text-white">x18</span></li>
+                        <li class="flex justify-between border-b border-gray-800 pb-1"><span>Vanguard Wardens</span> <span class="text-white">x12</span></li>
+                    </ul>
+                </div>
+
+                <!-- Fleet Card 2 -->
+                <div class="glass-panel p-6 group hover:border-tac-amber transition-colors border-t-tac-amber">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="font-header text-2xl font-bold text-white uppercase group-hover:text-tac-amber transition-colors">Capital Div</h3>
+                        <span class="font-mono text-tac-amber bg-tac-amber/10 px-2 py-1 text-xs border border-tac-amber/30">MAINTENANCE</span>
+                    </div>
+                    <div class="h-2 w-full bg-gray-800 mb-6 rounded overflow-hidden">
+                        <div class="h-full bg-tac-amber w-[65%] shadow-[0_0_10px_#ffab00]"></div>
+                    </div>
+                    <ul class="font-mono text-sm space-y-2 text-gray-400">
+                        <li class="flex justify-between border-b border-gray-800 pb-1"><span>Idris-M Frigate</span> <span class="text-white">x1</span></li>
+                        <li class="flex justify-between border-b border-gray-800 pb-1"><span>Polaris Corvette</span> <span class="text-white">x3</span></li>
+                        <li class="flex justify-between border-b border-gray-800 pb-1"><span>Hammerhead</span> <span class="text-white">x5</span></li>
+                    </ul>
+                </div>
+
+                <!-- Fleet Card 3 -->
+                <div class="glass-panel p-6 group hover:border-green-400 transition-colors border-t-green-400">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="font-header text-2xl font-bold text-white uppercase group-hover:text-green-400 transition-colors">Support & Log</h3>
+                        <span class="font-mono text-green-400 bg-green-400/10 px-2 py-1 text-xs border border-green-400/30">100% READY</span>
+                    </div>
+                    <div class="h-2 w-full bg-gray-800 mb-6 rounded overflow-hidden">
+                        <div class="h-full bg-green-400 w-full shadow-[0_0_10px_#4ade80]"></div>
+                    </div>
+                    <ul class="font-mono text-sm space-y-2 text-gray-400">
+                        <li class="flex justify-between border-b border-gray-800 pb-1"><span>Starfarer Gemini</span> <span class="text-white">x8</span></li>
+                        <li class="flex justify-between border-b border-gray-800 pb-1"><span>Crucible</span> <span class="text-white">x4</span></li>
+                        <li class="flex justify-between border-b border-gray-800 pb-1"><span>C2 Hercules</span> <span class="text-white">x10</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Operations Section -->
+    <section id="operations" class="py-20 relative bg-space-dark/90 border-y border-tac-cyan/20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between mb-12">
+                <div>
+                    <h2 class="font-header text-3xl md:text-4xl font-bold text-white tracking-widest uppercase">Active Operations</h2>
+                    <p class="font-mono text-gray-400 mt-2">Classified mission board. Clearance Level 3 required.</p>
+                </div>
+                <div class="hidden sm:block">
+                    <div class="font-mono text-sm border border-tac-crimson bg-tac-crimson/10 text-tac-crimson px-3 py-1 flex items-center gap-2">
+                        <span class="w-2 h-2 bg-tac-crimson rounded-full animate-ping"></span> LIVE COMBAT ZONES
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Op 1 -->
+                <div class="glass-panel overflow-hidden flex flex-col sm:flex-row group border-l-4 border-l-tac-crimson">
+                    <div class="sm:w-1/3 bg-[url('https://placehold.co/400x400/2a0808/ff2a2a?text=JUMPTOWN')] bg-cover bg-center min-h-[150px] relative border-r border-tac-cyan/20 grayscale group-hover:grayscale-0 transition-all duration-500">
+                        <div class="absolute inset-0 bg-tac-crimson/20 mix-blend-overlay"></div>
+                    </div>
+                    <div class="p-6 sm:w-2/3 flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="font-header text-xl font-bold text-white uppercase">OP: Crimson Harvest</h4>
+                                <span class="text-xs font-mono text-tac-crimson border border-tac-crimson px-1">IN PROGRESS</span>
+                            </div>
+                            <p class="text-sm text-gray-400 font-mono mb-4">Securing contraband manufacturing facility against hostile Org incursions. Enforcing no-fly zone within 50km radius.</p>
+                        </div>
+                        <div class="flex gap-4 font-mono text-xs text-gray-500">
+                            <span>LOC: <span class="text-gray-300">Yela / Jumptown</span></span>
+                            <span>UNITS: <span class="text-gray-300">Alpha & Bravo</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Op 2 -->
+                <div class="glass-panel overflow-hidden flex flex-col sm:flex-row group border-l-4 border-l-tac-amber">
+                    <div class="sm:w-1/3 bg-[url('https://placehold.co/400x400/1a1200/ffab00?text=DAYMAR')] bg-cover bg-center min-h-[150px] relative border-r border-tac-cyan/20 grayscale group-hover:grayscale-0 transition-all duration-500">
+                        <div class="absolute inset-0 bg-tac-amber/20 mix-blend-overlay"></div>
+                    </div>
+                    <div class="p-6 sm:w-2/3 flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="font-header text-xl font-bold text-white uppercase">OP: Golden Shield</h4>
+                                <span class="text-xs font-mono text-tac-amber border border-tac-amber px-1">STANDBY</span>
+                            </div>
+                            <p class="text-sm text-gray-400 font-mono mb-4">Providing heavy escort for VIP mining consortium. High threat of pirate interception along the Daymar-Port Olisar route.</p>
+                        </div>
+                        <div class="flex gap-4 font-mono text-xs text-gray-500">
+                            <span>LOC: <span class="text-gray-300">Daymar Orbit</span></span>
+                            <span>UNITS: <span class="text-gray-300">Charlie Sq</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Enlistment / Recruitment -->
+    <section id="enlist" class="py-24 relative overflow-hidden">
+        <!-- Abstract BG styling -->
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-tac-cyan/5 rounded-full blur-[100px] pointer-events-none"></div>
+        
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+            <div class="hud-bracket inline-block mb-6 p-4">
+                <svg class="w-16 h-16 text-tac-cyan mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
+            </div>
+            
+            <h2 class="font-header text-4xl md:text-5xl font-bold text-white uppercase mb-4 glow-cyan">Become a Operative</h2>
+            <p class="font-mono text-gray-400 text-lg mb-10 max-w-2xl mx-auto">
+                Acheron Tactical is actively recruiting disciplined pilots, marines, and logistics personnel. 
+                Do you have what it takes to hold the line?
+            </p>
+            
+            <form class="glass-panel p-8 max-w-xl mx-auto text-left border border-tac-cyan/30" onsubmit="event.preventDefault(); showCommMessage('Application transmitted to Central Command. Await instructions.');">
+                <div class="grid grid-cols-1 gap-6 mb-6">
+                    <div>
+                        <label class="block font-mono text-xs text-tac-cyan mb-2">CALLSIGN / HANDLE</label>
+                        <input type="text" required class="w-full bg-space-dark border border-gray-700 text-white font-mono p-3 focus:outline-none focus:border-tac-cyan focus:ring-1 focus:ring-tac-cyan transition-colors" placeholder="e.g. Maverick">
+                    </div>
+                    <div>
+                        <label class="block font-mono text-xs text-tac-cyan mb-2">PRIMARY DIVISION PREFERENCE</label>
+                        <select class="w-full bg-space-dark border border-gray-700 text-white font-mono p-3 focus:outline-none focus:border-tac-cyan focus:ring-1 focus:ring-tac-cyan appearance-none">
+                            <option value="fighter">Fighter Squadron</option>
+                            <option value="marine">Marine Assault (FPS)</option>
+                            <option value="capital">Capital Ship Crew</option>
+                            <option value="logistics">Logistics & Support</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-mono text-xs text-tac-cyan mb-2">RSI PROFILE URL</label>
+                        <input type="url" class="w-full bg-space-dark border border-gray-700 text-white font-mono p-3 focus:outline-none focus:border-tac-cyan focus:ring-1 focus:ring-tac-cyan" placeholder="https://robertsspaceindustries.com/citizens/...">
+                    </div>
+                </div>
+                <button type="submit" class="w-full btn-tactical py-4 font-header font-bold text-xl">Transmit Data</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Comm-Link & Footer -->
+    <footer id="comm-link" class="bg-black border-t border-tac-cyan/30 pt-16 pb-8 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+                <div class="md:col-span-2">
+                    <div class="flex items-center gap-2 mb-4">
+                        <svg class="h-6 w-6 text-tac-cyan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                        </svg>
+                        <span class="font-header font-bold text-xl tracking-widest text-white uppercase">AchTac</span>
+                    </div>
+                    <p class="font-mono text-sm text-gray-500 max-w-sm mb-6">
+                        Secure comm-link established. Acheron Tactical Command is a private military corporation operating within UEE jurisdiction (mostly). 
+                    </p>
+                    <div class="flex space-x-4">
+                        <!-- Social placeholders -->
+                        <a href="#" class="text-gray-500 hover:text-tac-cyan transition-colors">
+                            <span class="sr-only">Spectrum</span>
+                            <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.129 22 16.99 22 12c0-5.523-4.477-10-10-10z"/></svg>
+                        </a>
+                        <a href="#" class="text-gray-500 hover:text-tac-cyan transition-colors">
+                            <span class="sr-only">Discord</span>
+                            <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.128a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127a12.299 12.299 0 0 1-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028a19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="font-mono text-white text-sm uppercase mb-4 border-b border-gray-800 pb-2">Quick Nav</h4>
+                    <ul class="font-mono text-sm space-y-2 text-gray-500">
+                        <li><a href="#home" class="hover:text-tac-cyan transition-colors">Command Center</a></li>
+                        <li><a href="#about" class="hover:text-tac-cyan transition-colors">Org Directive</a></li>
+                        <li><a href="#fleet" class="hover:text-tac-cyan transition-colors">Fleet Roster</a></li>
+                        <li><a href="#enlist" class="hover:text-tac-cyan transition-colors">Enlistment</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-mono text-white text-sm uppercase mb-4 border-b border-gray-800 pb-2">Telemetry</h4>
+                    <ul class="font-mono text-sm space-y-2 text-gray-500">
+                        <li>STATUS: <span class="text-green-400">ONLINE</span></li>
+                        <li>ENCRYPTION: <span class="text-tac-cyan">AES-2948</span></li>
+                        <li>ORBITAL: <span id="footer-orbital">99.1%</span></li>
+                        <li>VERSION: 3.18.x</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center font-mono text-xs text-gray-600">
+                <p>&copy; 2948-2954 Acheron Tactical. All rights reserved.</p>
+                <p class="mt-2 md:mt-0">NOT AFFILIATED WITH CLOUD IMPERIUM GAMES.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Tactical Comm Message Box (Replaces alert) -->
+    <div id="comm-msg-box" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 glass-panel border border-tac-cyan p-4 flex items-start gap-4 transform translate-y-[150%] transition-transform duration-300 w-11/12 max-w-md">
+        <svg class="w-6 h-6 text-tac-cyan shrink-0 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <div>
+            <h5 class="font-header font-bold text-white uppercase text-sm mb-1">Incoming Transmission</h5>
+            <p id="comm-msg-text" class="font-mono text-xs text-gray-300"></p>
+        </div>
+        <button onclick="closeCommMessage()" class="text-gray-500 hover:text-white ml-auto">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Mobile Menu Toggle
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Comm Message Box (Custom Alert)
+        function showCommMessage(message) {
+            const box = document.getElementById('comm-msg-box');
+            const text = document.getElementById('comm-msg-text');
+            text.innerText = message;
+            box.classList.remove('translate-y-[150%]');
+            
+            // Auto close after 5 seconds
+            setTimeout(closeCommMessage, 5000);
+        }
+
+        function closeCommMessage() {
+            const box = document.getElementById('comm-msg-box');
+            box.classList.add('translate-y-[150%]');
+        }
+
+        // Dynamic Telemetry Data Simulation
+        function updateTelemetry() {
+            // Update Lat/Long slightly
+            const lat = (89 + Math.random() * 0.9).toFixed(3);
+            const long = (44 + Math.random() * 0.9).toFixed(3);
+            document.getElementById('tel-lat').innerText = lat;
+            document.getElementById('tel-long').innerText = long;
+
+            // Ping fluctuation
+            const ping = Math.floor(Math.random() * 30) + 10;
+            document.getElementById('tel-ping').innerText = ping;
+
+            // Hex Sync
+            const sync = (99 + Math.random()).toFixed(2);
+            document.getElementById('tel-sync').innerText = sync + '%';
+            document.getElementById('footer-orbital').innerText = sync + '%';
+
+            // Randomize Uplink text occasionally
+            if(Math.random() > 0.95) {
+                const states = ['ESTABLISHED', 'ENCRYPTING', 'VERIFYING', 'HANDSHAKE'];
+                document.getElementById('tel-uplink').innerText = states[Math.floor(Math.random() * states.length)];
+            }
+        }
+        setInterval(updateTelemetry, 800); // Update every 800ms
+
+        // Simple Starfield Canvas Background
+        const canvas = document.getElementById('starfield');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let stars = [];
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+
+        function initStars() {
+            stars = [];
+            for(let i=0; i<200; i++) {
+                stars.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    size: Math.random() * 1.5,
+                    speed: (Math.random() * 0.5) + 0.1,
+                    brightness: Math.random()
+                });
+            }
+        }
+
+        function animateStars() {
+            ctx.clearRect(0, 0, width, height);
+            ctx.fillStyle = '#05070a'; // matches bg-space-dark
+            ctx.fillRect(0, 0, width, height);
+
+            for(let star of stars) {
+                ctx.fillStyle = `rgba(255, 255, 255, ${star.brightness})`;
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.size, 0, Math.PI*2);
+                ctx.fill();
+
+                // Move slowly leftwards
+                star.x -= star.speed;
+                // Twinkle
+                star.brightness = (Math.sin(Date.now() * 0.001 * star.speed * 10) + 1) / 2 * 0.8 + 0.2;
+
+                if(star.x < 0) {
+                    star.x = width;
+                    star.y = Math.random() * height;
+                }
+            }
+            requestAnimationFrame(animateStars);
+        }
+
+        window.addEventListener('resize', resize);
+        window.onload = function() {
+            resize();
+            initStars();
+            animateStars();
+        }
+    </script>
+</body>
+</html>
